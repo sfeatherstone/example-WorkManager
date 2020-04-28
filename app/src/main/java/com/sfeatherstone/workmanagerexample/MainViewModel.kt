@@ -41,8 +41,8 @@ class MainViewModel : ViewModel() {
         jobsByTagObserver = Observer {
             for(wi in it) {
                 if (!currentJobs.containsKey(wi.id)) {
-                    val observer = Observer<WorkInfo> {
-                        updateLiveData(it)
+                    val observer = Observer<WorkInfo> { workInfo ->
+                        updateLiveData(workInfo)
                     }
                     val liveData = workManager.getWorkInfoByIdLiveData(wi.id)
                     currentJobs[wi.id] = JobDescription(0, "Historic", liveData, observer)
