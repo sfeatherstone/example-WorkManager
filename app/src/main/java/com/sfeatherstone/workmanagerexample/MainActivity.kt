@@ -11,24 +11,28 @@ class MainActivity : AppCompatActivity() {
     val viewModel: MainViewModel by viewModels()
     var index = 1
 
-    fun submitWork(precentPass: Int) {
-        viewModel.postToServer(applicationContext,precentPass, index++)
-        submitWorkButton80.text = "Submit 80% (${index})"
-        submitWorkButton20.text = "Submit 20% (${index})"
+    fun submitWork(percentPass: Int) {
+        viewModel.postToServer(applicationContext, percentPass, index++)
+        submitWorkButton80.text = "Success 80% (${index})"
+        submitWorkButton20.text = "Success 20% (${index})"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        submitWorkButton80.text = "Submit 80% (${index})"
+        submitWorkButton80.text = "Success 80% (${index})"
         submitWorkButton80.setOnClickListener {
             submitWork(80)
         }
 
-        submitWorkButton20.text = "Submit 20% (${index})"
+        submitWorkButton20.text = "Success 20% (${index})"
         submitWorkButton20.setOnClickListener {
             submitWork(20)
+        }
+
+        getStatusButton.setOnClickListener {
+            viewModel.getAllJobs(applicationContext)
         }
 
         viewModel.jobs.observe(this, Observer {

@@ -10,15 +10,14 @@ class PostToServerWorker(appContext: Context, workerParams: WorkerParameters): C
 
     private val random by lazy { Random(Date().time)}
     private var jobDuration: Int = 100
-    private var jobFail: Int = 100
-    private lateinit var jobName: String
+    private var jobSuccessRate: Int = 100
     private var maxAttempts: Int = 5
 
 
     override suspend fun doWork(): Result {
         // Read input data
         jobDuration = inputData.getInt(JOB_TIME, 100)
-        jobFail = inputData.getInt(JOB_FAIL_CHANCE, 0)
+        jobSuccessRate = inputData.getInt(JOB_SUCCESS_CHANCE, 0)
         maxAttempts = inputData.getInt(ATTEMPT_RETRIES, 5)
 
         log("Starting job")
@@ -31,7 +30,8 @@ class PostToServerWorker(appContext: Context, workerParams: WorkerParameters): C
         }
 
         // Add a random fail
-        if (random.nextInt(100) > jobFail) {
+        if (random.nextInt(100) > jobSuccessRate) {
+            // Get number of attempts made against max attempts we have set
             if (runAttemptCount <= maxAttempts) {
                 // Try again
                 log("Retrying job")
@@ -52,14 +52,14 @@ class PostToServerWorker(appContext: Context, workerParams: WorkerParameters): C
 
 
     companion object {
-        fun submitPost(applicationContext: Context, duration: Int, failPercent:Int, tagName: String): UUID {
+        fun submitPost(applicationContext: Context, duration: Int, successPercent:Int, tagName: String): UUID {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
             val restWorkRequest = OneTimeWorkRequestBuilder<PostToServerWorker>()
                 .setInputData(workDataOf(JOB_TIME to duration,
-                    JOB_FAIL_CHANCE to failPercent,
+                    JOB_SUCCESS_CHANCE to successPercent,
                     ATTEMPT_RETRIES to 2))
                 .setConstraints(constraints)
                 .addTag(tagName)
@@ -73,8 +73,7 @@ class PostToServerWorker(appContext: Context, workerParams: WorkerParameters): C
 
         const val Progress = "Progress"
         private const val JOB_TIME = "JOB_TIME_INT"
-        private const val JOB_FAIL_CHANCE = "JOB_FAIL_CHANCE_FLOAT"
-        private const val JOB_NAME = "JOB_NAME_STRING"
+        private const val JOB_SUCCESS_CHANCE = "JOB_FAIL_CHANCE_FLOAT"
         private const val ATTEMPT_RETRIES = "ATTEMPT_RETRIES_INT"
     }
 
