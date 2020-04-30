@@ -3,29 +3,26 @@ package com.sfeatherstone.workmanagerexample
 import android.content.Context
 import android.util.Log
 import androidx.work.*
-import java.lang.Thread.*
+import kotlinx.coroutines.delay
 import java.util.*
 
 class PostToServerWorker(appContext: Context, workerParams: WorkerParameters): CoroutineWorker(appContext, workerParams) {
 
     private val random by lazy { Random(Date().time)}
-    private var jobDuration: Int = 100
-    private var jobSuccessRate: Int = 100
-    private var maxAttempts: Int = 5
-
 
     override suspend fun doWork(): Result {
         // Read input data
-        jobDuration = inputData.getInt(JOB_TIME, 100)
-        jobSuccessRate = inputData.getInt(JOB_SUCCESS_CHANCE, 0)
-        maxAttempts = inputData.getInt(ATTEMPT_RETRIES, 5)
+        val jobDuration = inputData.getInt(JOB_TIME, 100)
+        val jobSuccessRate = inputData.getInt(JOB_SUCCESS_CHANCE, 0)
+        val maxAttempts = inputData.getInt(ATTEMPT_RETRIES, 5)
 
-        log("Starting job")
+        log("Starting job", maxAttempts)
 
         //Fake some work with progress
         setProgress(workDataOf(Progress to 0))
         for (i in 1..10) {
-            sleep((jobDuration / 10).toLong())
+            // Simulate work
+            delay((jobDuration / 10).toLong())
             setProgress(workDataOf(Progress to i * 10))
         }
 
@@ -34,19 +31,19 @@ class PostToServerWorker(appContext: Context, workerParams: WorkerParameters): C
             // Get number of attempts made against max attempts we have set
             if (runAttemptCount <= maxAttempts) {
                 // Try again
-                log("Retrying job")
+                log("Retrying job", maxAttempts)
                 return  Result.retry()
             }
-            log("Failing job")
+            log("Failing job", maxAttempts)
             return Result.failure()
         }
 
         // Return the output
-        log("Finishing successful job")
+        log("Finishing successful job", maxAttempts)
         return Result.success()
     }
 
-    private fun log(message: String) {
+    private fun log(message: String, maxAttempts: Int) {
         Log.d("PostToServerWorker", "$message $id ${tags.joinToString(separator = ",")} attempt:$runAttemptCount of $maxAttempts")
     }
 
